@@ -42,7 +42,8 @@ namespace c10 {
   _(c10::quint8, QUInt8) /* 13 */                        \
   _(c10::qint32, QInt32) /* 14 */                        \
   _(at::BFloat16, BFloat16) /* 15 */                     \
-  _(c10::quint4x2, QUInt4x2) /* 16 */
+  _(c10::quint4x2, QUInt4x2) /* 16 */                    \
+  _(uint64_t, Teste) /* 17 */
 
 // If you want to support ComplexHalf for real, add ComplexHalf
 // into this macro (and change the name).  But beware: convert()
@@ -228,7 +229,7 @@ static inline bool isIntegralType(ScalarType t) {
 static inline bool isIntegralType(ScalarType t, bool includeBool) {
   bool isIntegral =
       (t == ScalarType::Byte || t == ScalarType::Char || t == ScalarType::Int ||
-       t == ScalarType::Long || t == ScalarType::Short);
+       t == ScalarType::Long || t == ScalarType::Short || t == ScalarType::Teste);
 
   return includeBool ? isIntegral || (t == ScalarType::Bool) : isIntegral;
 }
