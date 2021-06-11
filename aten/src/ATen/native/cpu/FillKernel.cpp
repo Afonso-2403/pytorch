@@ -37,6 +37,7 @@ void fill_non_native_type<c10::complex<at::Half>>(TensorIterator& iter, const Sc
 void fill_kernel(TensorIterator& iter, const Scalar& value_scalar) {
   if (iter.dtype() == ScalarType::Teste) {
     TORCH_CHECK(false, "error message written by Afonso");
+  }
   if (iter.dtype() == ScalarType::Half) {
     fill_non_native_type<at::Half>(iter, value_scalar);
   } else if (iter.dtype() == ScalarType::BFloat16) {
