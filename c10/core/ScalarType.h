@@ -186,6 +186,9 @@ AT_FORALL_SCALAR_TYPES_WITH_COMPLEX_AND_QINTS(SPECIALIZE_CppTypeToScalarType)
   _(c10::complex<float>, ComplexFloat) \
   _(c10::complex<double>, ComplexDouble)
 
+#define AT_FORALL_TESTE_TYPES(_)  \
+  _(uint64_t, Teste)
+
 #define DEFINE_CONSTANT(_, name) \
   constexpr ScalarType k##name = ScalarType::name;
 

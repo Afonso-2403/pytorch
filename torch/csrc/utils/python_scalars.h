@@ -27,6 +27,9 @@ inline void store_scalar(void* data, at::ScalarType scalarType, PyObject* obj) {
     case at::kBFloat16:
       *(at::BFloat16*)data = at::convert<at::BFloat16, double>(THPUtils_unpackDouble(obj));
       break;
+    case at::kTeste: 
+      *(uint64_t*)data = THPUtils_unpackLong(obj);
+      break;
     default: throw std::runtime_error("invalid type");
   }
 }
