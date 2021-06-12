@@ -37,6 +37,8 @@
     PyObject_IsInstance(obj, THPComplexFloatStorageClass)
 #define THPQUInt4x2Storage_Check(obj) \
     PyObject_IsInstance(obj, THPQUInt8StorageClass)
+#define THPTesteStorage_Check(obj) \
+    PyObject_IsInstance(obj, THPTesteStorageClass)
 
 #define THPDoubleStorage_CData(obj)         (obj)->cdata
 #define THPFloatStorage_CData(obj)          (obj)->cdata
@@ -54,6 +56,7 @@
 #define THPComplexDoubleStorage_CData(obj)  (obj)->cdata
 #define THPComplexFloatStorage_CData(obj)   (obj)->cdata
 #define THPQUInt4x2Storage_CData(obj)       (obj)->cdata
+#define THPTesteStorage_CData(obj)          (obj)->cdata
 
 #define THPStorageType TH_CONCAT_3(THP,Real,StorageType)
 #define THPStorageBaseStr TH_CONCAT_STRING_2(Real,StorageBase)
@@ -75,5 +78,8 @@
 
 #include <torch/csrc/generic/Storage.h>
 #include <TH/THGenerateQTypes.h>
+
+#include <torch/csrc/generic/Storage.h>
+#include <TH/THGenerateTesteTypes.h>
 
 #endif

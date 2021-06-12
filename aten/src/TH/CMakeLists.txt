@@ -61,6 +61,8 @@ install(FILES
   THGenerateQInt8Type.h
   THGenerateQInt32Type.h
   THGenerateQTypes.h
+  THGenerateTesteTypes.h
+  THGenerateUInt64Type.h
   THStorage.h
   THStorageFunctions.h
   THTensor.h
