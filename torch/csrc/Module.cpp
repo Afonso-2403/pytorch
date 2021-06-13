@@ -148,6 +148,7 @@ static PyObject * THPModule_initExtension(PyObject *_unused, PyObject *shm_manag
   THPBFloat16Storage_postInit(module);
   THPComplexDoubleStorage_postInit(module);
   THPComplexFloatStorage_postInit(module);
+  THPTesteStorage_postInit(module);
   THPAutograd_initFunctions();
   Py_RETURN_NONE;
   END_HANDLE_TH_ERRORS
@@ -729,6 +730,7 @@ bool THCPBoolStorage_init(PyObject *module);
 bool THCPBFloat16Storage_init(PyObject *module);
 bool THCPComplexDoubleStorage_init(PyObject *module);
 bool THCPComplexFloatStorage_init(PyObject *module);
+bool THCPTesteStorage_init(PyObject *module);
 
 void THCPStream_init(PyObject *module);
 void THCPEvent_init(PyObject *module);
@@ -763,6 +765,7 @@ bool THDPCharStorage_init(PyObject *module);
 bool THDPByteStorage_init(PyObject *module);
 bool THDPBoolStorage_init(PyObject *module);
 bool THDPBFloat16Storage_init(PyObject *module);
+bool THDPTesteStorage_init(PyObject *module);
 bool THDPComplexDoubleStorage_init(PyObject *module);
 bool THDPComplexFloatStorage_init(PyObject *module);
 
@@ -886,6 +889,7 @@ PyObject* initModule() {
   ASSERT_TRUE(THPBFloat16Storage_init(module));
   ASSERT_TRUE(THPComplexDoubleStorage_init(module));
   ASSERT_TRUE(THPComplexFloatStorage_init(module));
+  ASSERT_TRUE(THPTesteStorage_init(module));
 
 #ifdef USE_CUDA
   // This will only initialise base classes and attach them to library namespace
