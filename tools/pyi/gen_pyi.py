@@ -538,7 +538,7 @@ def gen_pyi(native_yaml_path: str, deprecated_yaml_path: str, fm: FileManager) -
     dt = ('Double', 'Float', 'Long', 'Int',
           'Short', 'Char', 'Byte', 'Bool',
           'Half', 'BFloat16', 'ComplexDouble',
-          'ComplexFloat', 'QUInt8', 'QInt8', 'QInt32', 'QUInt4x2', 'Teste')
+          'ComplexFloat', 'QUInt8', 'QInt8', 'QInt32', 'QUInt4x2')
     for c in dt:
         legacy_storage_base_hints.append('class {}StorageBase(object): ...'.format(c))
     for c in dt:
@@ -559,7 +559,7 @@ def gen_pyi(native_yaml_path: str, deprecated_yaml_path: str, fm: FileManager) -
                          ['float32', 'float', 'float64', 'double', 'float16', 'bfloat16', 'half',
                           'uint8', 'int8', 'int16', 'short', 'int32', 'int', 'int64', 'long',
                           'complex32', 'complex64', 'cfloat', 'complex128', 'cdouble',
-                          'quint8', 'qint8', 'qint32', 'bool', 'quint4x2', 'uint64']]
+                          'quint8', 'qint8', 'qint32', 'bool', 'quint4x2']]
 
     # Generate __all__ directive
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

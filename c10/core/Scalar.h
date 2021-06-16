@@ -62,7 +62,7 @@ class C10_API Scalar {
 
   // TODO: Support ComplexHalf accessor
   AT_FORALL_SCALAR_TYPES_WITH_COMPLEX_EXCEPT_COMPLEX_HALF(DEFINE_ACCESSOR)
-  AT_FORALL_TESTE_TYPES(DEFINE_ACCESSOR)
+
   // also support scalar.to<int64_t>();
   // Deleted for unsupported types, but specialized below for supported types
   template <typename T>
@@ -194,7 +194,6 @@ class C10_API Scalar {
     return to##name();             \
   }
 AT_FORALL_SCALAR_TYPES_WITH_COMPLEX_EXCEPT_COMPLEX_HALF(DEFINE_TO)
-AT_FORALL_TESTE_TYPES(DEFINE_TO)
 #undef DEFINE_TO
 
 } // namespace c10

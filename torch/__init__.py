@@ -576,13 +576,10 @@ class QInt32Storage(_C.QInt32StorageBase, _StorageBase):
 class QUInt4x2Storage(_C.QUInt4x2StorageBase, _StorageBase):
     pass
 
-class TesteStorage(_C.TesteStorageBase, _StorageBase):
-    pass
-
 _storage_classes = {
     DoubleStorage, FloatStorage, LongStorage, IntStorage, ShortStorage,
     CharStorage, ByteStorage, HalfStorage, BoolStorage, QUInt8Storage, QInt8Storage,
-    QInt32Storage, BFloat16Storage, ComplexFloatStorage, ComplexDoubleStorage, QUInt4x2Storage, TesteStorage
+    QInt32Storage, BFloat16Storage, ComplexFloatStorage, ComplexDoubleStorage, QUInt4x2Storage
 }
 
 # The _tensor_classes set is initialized by the call to _C._initialize_tensor_type_bindings()
@@ -652,7 +649,6 @@ del BFloat16StorageBase
 del ComplexDoubleStorageBase
 del ComplexFloatStorageBase
 del QUInt4x2StorageBase
-del TesteStorage
 
 ################################################################################
 # Define _assert
