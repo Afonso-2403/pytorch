@@ -55,6 +55,7 @@ inline PyObject* load_scalar(void* data, at::ScalarType scalarType) {
     case at::kComplexDouble: return PyComplex_FromCComplex(*reinterpret_cast<Py_complex *>((c10::complex<double>*)data));
     case at::kBool: return PyBool_FromLong(*(bool*)data);
     case at::kBFloat16: return PyFloat_FromDouble(at::convert<double, at::BFloat16>(*(at::BFloat16*)data));
+    case at::kTeste: return THPUtils_packInt64(*(int64_t*)data);
     default: throw std::runtime_error("invalid type");
   }
 }
