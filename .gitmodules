@@ -138,4 +138,4 @@
     url = https://github.com/pytorch/kineto
 [submodule "third_party/universal"]
 	path = third_party/universal
-	url = https://github.com/stillwater-sc/universal.git
+	url = https://github.com/Afonso-2403/universal.git
