@@ -9,6 +9,7 @@
 #include <c10/util/qint8.h>
 #include <c10/util/quint4x2.h>
 #include <c10/util/quint8.h>
+#include <universal/number/posit/posit.hpp>
 
 #include <complex>
 #include <cstdint>

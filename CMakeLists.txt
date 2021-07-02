@@ -891,6 +891,7 @@ include_directories(BEFORE ${PROJECT_BINARY_DIR})
 
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/aten/src/)
 include_directories(BEFORE ${PROJECT_BINARY_DIR}/aten/src/)
+include_directories(${PROJECT_SOURCE_DIR}/third_party/universal/include/)
 
 # ---[ Main build
 add_subdirectory(c10)
