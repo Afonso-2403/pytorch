@@ -15,6 +15,9 @@
 #include <cstdint>
 #include <iostream>
 
+
+using Posit = sw::universal::posit<16,2>;
+
 namespace c10 {
 
 // For the macros below:
@@ -43,7 +46,8 @@ namespace c10 {
   _(c10::quint8, QUInt8) /* 13 */                        \
   _(c10::qint32, QInt32) /* 14 */                        \
   _(at::BFloat16, BFloat16) /* 15 */                     \
-  _(c10::quint4x2, QUInt4x2) /* 16 */
+  _(c10::quint4x2, QUInt4x2) /* 16 */			 \
+  _(Posit, Posit16es2) /* 17 */
 
 // If you want to support ComplexHalf for real, add ComplexHalf
 // into this macro (and change the name).  But beware: convert()
