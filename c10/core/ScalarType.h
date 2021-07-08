@@ -16,7 +16,7 @@
 #include <iostream>
 
 
-using Posit = sw::universal::posit<16,2>;
+using posit16es2 = sw::universal::posit<16,2>;
 
 namespace c10 {
 
@@ -47,7 +47,7 @@ namespace c10 {
   _(c10::qint32, QInt32) /* 14 */                        \
   _(at::BFloat16, BFloat16) /* 15 */                     \
   _(c10::quint4x2, QUInt4x2) /* 16 */			 \
-  _(Posit, Posit16es2) /* 17 */
+  _(posit16es2, Posit16es2) /* 17 */
 
 // If you want to support ComplexHalf for real, add ComplexHalf
 // into this macro (and change the name).  But beware: convert()
@@ -190,6 +190,9 @@ AT_FORALL_SCALAR_TYPES_WITH_COMPLEX_AND_QINTS(SPECIALIZE_CppTypeToScalarType)
   _(c10::complex<float>, ComplexFloat) \
   _(c10::complex<double>, ComplexDouble)
 
+#define AT_FORALL_POSIT_TYPES(_)       \
+  _(posit16es2, Posit16es2)
+
 #define DEFINE_CONSTANT(_, name) \
   constexpr ScalarType k##name = ScalarType::name;
 
@@ -254,6 +257,11 @@ static inline bool isQIntType(ScalarType t) {
   // Don't forget to extend this when adding new QInt types
   return t == ScalarType::QInt8 || t == ScalarType::QUInt8 ||
       t == ScalarType::QInt32 || t == ScalarType::QUInt4x2;
+}
+
+static inline bool isPositType(ScalarType t) {
+  // Don't forget to extend this when adding new Posit types
+  return t == ScalarType::Posit16es2;
 }
 
 static inline ScalarType toQIntType(ScalarType t) {
