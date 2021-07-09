@@ -16,9 +16,10 @@
 #include <iostream>
 
 
-using posit16es2 = sw::universal::posit<16,2>;
 
 namespace c10 {
+
+using posit16es2 = sw::universal::posit<16,2>;
 
 // For the macros below:
 // NB: If you want to macro some code for all non-QInt scalar types (i.e. types
