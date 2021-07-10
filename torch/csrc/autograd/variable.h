@@ -45,7 +45,7 @@ namespace torch { namespace autograd {
 /// If you change this, update the doc at the top of the torch/autograd/__init__.py file
 /// and "test_set_requires_grad_only_for_continuous_types" in test/test_autograd.py
 static inline bool isDifferentiableType(at::ScalarType t) {
-    return isFloatingType(t) || isComplexType(t);
+    return isFloatingType(t) || isComplexType(t) || isPositType(t);
 }
 
 struct Node;
