@@ -1,3 +1,14 @@
+## This Fork
+
+Support for a Posit(n=16, es=2) dtype is being added in branch add-first-posit-dtype.
+The goal is to have support for a model using solely Posit.
+
+
+
+
+
+
+
 ![PyTorch Logo](https://github.com/pytorch/pytorch/blob/master/docs/source/_static/img/pytorch-logo-dark.png)
 
 --------------------------------------------------------------------------------
