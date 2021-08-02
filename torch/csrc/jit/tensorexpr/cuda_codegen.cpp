@@ -39,7 +39,6 @@ class ScopedVarName {
   ScopedVarName(const ScopedVarName&) = delete;
   ScopedVarName& operator=(const ScopedVarName&) = delete;
 
-  // NOLINTNEXTLINE(modernize-use-equals-default)
   ~ScopedVarName() noexcept(false) {
     mapping_->erase(var_);
   }
@@ -903,7 +902,6 @@ static std::ostream& operator<<(
   return out;
 }
 
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 static const char* device_resource_string = R"(
 #define NAN __int_as_float(0x7fffffff)
 #define POS_INFINITY __int_as_float(0x7f800000)
@@ -911,7 +909,6 @@ static const char* device_resource_string = R"(
 
 )";
 
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 static const char* shared_resource_string = R"(
 template<typename T>
 __device__ T maximum(T a, T b) {
@@ -1206,9 +1203,7 @@ at::Tensor CudaCodeGen::empty_strided(
 void CudaCodeGen::CompileToNVRTC(
     const std::string& code,
     const std::string& func_name) {
-  // NOLINTNEXTLINE(modernize-use-nullptr)
-  // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
-  CUcontext pctx = 0;
+  CUcontext pctx = nullptr;
   AT_CUDA_DRIVER_CHECK(nvrtc().cuCtxGetCurrent(&pctx));
   // Note: hacked at::DeviceGuard since at::DeviceGuard was failing to work
   // properly in some scenarios
@@ -1316,7 +1311,6 @@ void CudaCodeGen::CompileToNVRTC(
 
 CudaCodeGen::~CudaCodeGen() = default;
 
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 RegisterCodeGen<CudaCodeGen> cuda_codegen_reg("cuda_codegen");
 
 } // namespace tensorexpr

@@ -97,7 +97,6 @@ fbgemm::matrix_op_t to_fbgemm(TransposeType trans) {
 
 }  // namespace (anonymous)
 
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 DEFINE_DISPATCH(gemm_stub);
 
 void gemm(
@@ -263,7 +262,6 @@ void gemm(
       transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
 }
 
-
 void gemm(
     TransposeType transa, TransposeType transb,
     int64_t m, int64_t n, int64_t k,
@@ -278,6 +276,7 @@ void gemm(
       at::kCPU, at::kPosit16es2,
       transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
 }
+
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 DEFINE_DISPATCH(axpy_stub);
 
@@ -365,7 +364,6 @@ void axpy(int64_t n, c10::complex<float> a, const c10::complex<float> *x, int64_
       n, a, x, incx, y, incy);
 }
 
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 DEFINE_DISPATCH(copy_stub);
 
 void copy(int64_t n, const double *x, int64_t incx, double *y, int64_t incy) {
