@@ -176,7 +176,7 @@ To convert(From f) {
 template <typename To, typename From>
 To checked_convert(From f, const char* name) {
   // Converting to bool can't overflow so we exclude this case from checking.
-  if (!std::is_same<To, bool>::value && overflows<To, From>(f)) {
+  if (!std::is_same<To, bool>::value && !std::is_same<To, c10::posit16es2>::value && overflows<To, From>(f)) {
     std::ostringstream oss;
     oss << "value cannot be converted to type " << name
         << " without overflow: " << f;

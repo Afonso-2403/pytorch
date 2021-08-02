@@ -94,6 +94,15 @@ void gemm(
     int64_t beta,
     int64_t *c, int64_t ldc);
 
+void gemm(
+    TransposeType transa, TransposeType transb,
+    int64_t m, int64_t n, int64_t k,
+    c10::posit16es2 alpha,
+    const c10::posit16es2 *a, int64_t lda,
+    const c10::posit16es2 *b, int64_t ldb,
+    c10::posit16es2 beta,
+    c10::posit16es2 *c, int64_t ldc);
+
 using axpy_fn = void(*)(at::ScalarType type, int64_t n, const Scalar& a, const void *x, int64_t incx, void *y, int64_t incy);
 
 DECLARE_DISPATCH(axpy_fn, axpy_stub);

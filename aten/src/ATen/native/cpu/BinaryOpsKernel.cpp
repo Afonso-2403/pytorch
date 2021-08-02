@@ -23,7 +23,14 @@ using namespace vec;
 // Note: Undefined behavior when performing addition is intentionally
 // ignored.
 void add_kernel(TensorIteratorBase& iter, const Scalar& alpha_scalar) {
-  if (iter.dtype() == ScalarType::Bool) {
+
+  if (iter.dtype() == ScalarType::Posit16es2) {
+      using scalar_t = c10::posit16es2;
+      auto alpha = alpha_scalar.to<scalar_t>();
+      cpu_kernel(iter,
+        [=](scalar_t a, scalar_t b) __ubsan_ignore_undefined__ -> scalar_t { return a + alpha * b; });
+  }
+  else if (iter.dtype() == ScalarType::Bool) {
       using scalar_t = bool;
       auto alpha = alpha_scalar.to<scalar_t>();
       cpu_kernel(iter,
@@ -80,7 +87,12 @@ void sub_kernel(TensorIteratorBase& iter, const Scalar& alpha_scalar) __ubsan_ig
 }
 
 void mul_kernel(TensorIteratorBase& iter) {
-  if (iter.dtype() == ScalarType::Bool) {
+  
+  if (iter.dtype() == ScalarType::Posit16es2){
+    using scalar_t = c10::posit16es2;
+    cpu_kernel(iter, [=](scalar_t a, scalar_t b) -> scalar_t { return a * b; });
+  }
+  else if (iter.dtype() == ScalarType::Bool) {
     cpu_kernel(iter, [=](bool a, bool b) -> bool { return a && b; });
   } else {
     AT_DISPATCH_ALL_TYPES_AND_COMPLEX_AND2(kBFloat16, kHalf, iter.dtype(), "mul_cpu", [&]() {

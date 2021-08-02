@@ -263,6 +263,21 @@ void gemm(
       transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
 }
 
+
+void gemm(
+    TransposeType transa, TransposeType transb,
+    int64_t m, int64_t n, int64_t k,
+    const c10::posit16es2 alpha,
+    const c10::posit16es2 *a, int64_t lda,
+    const c10::posit16es2 *b, int64_t ldb,
+    const c10::posit16es2 beta,
+    c10::posit16es2 *c, int64_t ldc) {
+  internal::normalize_last_dims(transa, transb, m, n, k, &lda, &ldb, &ldc);
+
+  gemm_stub(
+      at::kCPU, at::kPosit16es2,
+      transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc);
+}
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 DEFINE_DISPATCH(axpy_stub);
 

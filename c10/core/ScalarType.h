@@ -48,7 +48,7 @@ using posit16es2 = sw::universal::posit<16,2>;
   _(c10::qint32, QInt32) /* 14 */                        \
   _(at::BFloat16, BFloat16) /* 15 */                     \
   _(c10::quint4x2, QUInt4x2) /* 16 */			 \
-  _(posit16es2, Posit16es2) /* 17 */
+  _(c10::posit16es2, Posit16es2) /* 17 */
 
 // If you want to support ComplexHalf for real, add ComplexHalf
 // into this macro (and change the name).  But beware: convert()
