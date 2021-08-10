@@ -24,6 +24,7 @@ template <> struct DistAccumType<BFloat16> { using type = float; };
 template <> struct DistAccumType<Half> { using type = float; };
 template <> struct DistAccumType<float> { using type = float; };
 template <> struct DistAccumType<double> { using type = double; };
+template <> struct DistAccumType<c10::posit16es2> { using type = c10::posit16es2; };
 
 template <typename T>
 using dist_acctype = typename DistAccumType<T>::type;
@@ -81,7 +82,7 @@ C10_HOST_DEVICE inline typename std::enable_if<std::is_floating_point<T>::value,
 template <typename T, typename V>
 C10_HOST_DEVICE inline dist_acctype<T> uniform_real(V val, T from, T to) {
   constexpr auto MASK = static_cast<V>((static_cast<uint64_t>(1) << std::numeric_limits<T>::digits) - 1);
-  constexpr auto DIVISOR = static_cast<dist_acctype<T>>(1) / (static_cast<uint64_t>(1) << std::numeric_limits<T>::digits);
+  auto DIVISOR = static_cast<dist_acctype<T>>(1) / (static_cast<uint64_t>(1) << std::numeric_limits<T>::digits);
   dist_acctype<T> x = (val & MASK) * DIVISOR;
   return (x * (to - from) + from);
 }

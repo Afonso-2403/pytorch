@@ -9,7 +9,7 @@
 #include <c10/util/qint8.h>
 #include <c10/util/quint4x2.h>
 #include <c10/util/quint8.h>
-#include <universal/number/posit/posit.hpp>
+#include <c10/util/Posit16es2.h>
 
 #include <complex>
 #include <cstdint>
@@ -18,8 +18,6 @@
 
 
 namespace c10 {
-
-using posit16es2 = sw::universal::posit<16,2>;
 
 // For the macros below:
 // NB: If you want to macro some code for all non-QInt scalar types (i.e. types

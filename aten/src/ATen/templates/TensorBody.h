@@ -168,6 +168,10 @@ class TORCH_API Tensor {
     return at::isFloatingType(this->scalar_type());
   }
 
+  bool is_posit() const {
+    return at::isPositType(this->scalar_type());
+  }
+
   bool is_signed() const {
     return at::isSignedType(this->scalar_type());
   }

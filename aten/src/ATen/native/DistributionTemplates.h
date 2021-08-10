@@ -285,7 +285,7 @@ at::Tensor& uniform_impl_(at::Tensor& self, double from, double to, c10::optiona
     auto float_tensor = at::view_as_real(self);
     uniform_impl_<uniform_kernel, RNG>(float_tensor, from, to, generator);
   } else {
-    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, self.scalar_type(), "check_uniform_bounds", [&] {
+    AT_DISPATCH_FLOATING_TYPES_AND3(at::ScalarType::Half, at::ScalarType::BFloat16, at::ScalarType::Posit16es2, self.scalar_type(), "check_uniform_bounds", [&] {
       const auto dtype = self.dtype();
       const auto min = static_cast<double>(std::numeric_limits<scalar_t>::lowest());
       const auto max = static_cast<double>(std::numeric_limits<scalar_t>::max());
