@@ -284,8 +284,8 @@ void unfolded2d_copy_kernel(
   // output_height*dH does not overflow a int64_t
   // output_width*dW does not overflow a int64_t
 
-  AT_DISPATCH_ALL_TYPES_AND(
-      at::ScalarType::BFloat16, input.scalar_type(), "unfolded2d_copy", [&] {
+  AT_DISPATCH_ALL_TYPES_AND2(
+      at::ScalarType::BFloat16, at::ScalarType::Posit16es2, input.scalar_type(), "unfolded2d_copy", [&] {
         scalar_t* input_data = input.data_ptr<scalar_t>();
         scalar_t* finput_data = finput.data_ptr<scalar_t>();
 
