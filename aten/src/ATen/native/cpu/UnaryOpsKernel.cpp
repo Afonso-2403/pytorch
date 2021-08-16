@@ -3,6 +3,7 @@
 #include <cmath>
 #include <limits>
 #include <type_traits>
+#include <string.h>
 
 #include <ATen/CPUGeneratorImpl.h>
 #include <ATen/Config.h>
@@ -21,6 +22,7 @@
 #include <ATen/native/cpu/Loops.h>
 #include <ATen/native/cpu/zmath.h>
 #include <c10/util/MathConstants.h>
+#include <c10/util/Posit16es2-math.h>
 
 #if AT_MKL_ENABLED()
 #include <mkl.h>
@@ -684,13 +686,20 @@ static void erfcx_kernel(TensorIteratorBase& iter){
 #define IMPLEMENT_COMPLEX_KERNEL(op)                                                             \
   namespace CPU_CAPABILITY {                                                                     \
   void op##_kernel(TensorIteratorBase& iter) {                                                   \
-    TORCH_INTERNAL_ASSERT(iter.ntensors() == 2);                                                 \
-    AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES_AND1(kBFloat16, iter.dtype(), #op "_vml_cpu", [&]() { \
-      iter.serial_for_each(                                                                      \
-          IMPLEMENT_ITERATOR_LAMBDA(op),                                                         \
-          {0, iter.numel()});                                                                    \
-    });                                                                                          \
-    iter.cast_outputs();                                                                         \
+    TORCH_INTERNAL_ASSERT(iter.ntensors() == 2);				       	         \
+    if(strcmp(#op, "tanh") == 0 && iter.dtype() == ScalarType::Posit16es2) {				 \
+    	AT_DISPATCH_POSIT_TYPES(iter.dtype(), #op, [&](){					 \
+		cpu_kernel(iter, [=](scalar_t a) -> scalar_t { return std::tanh(a); });		 \
+	});											 \
+    }												 \
+    else {											 \
+    	AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES_AND1(kBFloat16, iter.dtype(), #op "_vml_cpu", [&]() { \
+      	  iter.serial_for_each(                                                                      \
+            IMPLEMENT_ITERATOR_LAMBDA(op),                                                         \
+            {0, iter.numel()});                                                                    \
+    	});                                                                                          \
+    	iter.cast_outputs();                                                                         \
+    }												 \
   }                                                                                              \
   }                                                                                              \
   REGISTER_DISPATCH(op##_stub, &CPU_CAPABILITY::op##_kernel)
