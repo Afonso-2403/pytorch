@@ -9,6 +9,7 @@
 #include <ATen/cpu/vec/functional.h>
 #include <ATen/cpu/vec/vec.h>
 #include <c10/util/Optional.h>
+#include <c10/util/Posit16es2-math.h>
 
 #include <ATen/AccumulateType.h>
 // [Note AVX-SSE transitions] In general we avoid calls into cmath for code
@@ -131,6 +132,49 @@ inline void _vec_softmax_lastdim(
               output_data,
               output_data,
               dim_size);
+        }
+      });
+}
+
+template <typename posit_type>
+inline void _softmax_lastdim_posit(
+    const Tensor& output,
+    const Tensor& input) {
+
+  int64_t outer_size = 1;
+  int64_t dim_size = input.size(input.ndimension() - 1);
+  
+  for (int64_t i = 0; i < input.ndimension() - 1; ++i)
+    outer_size *= input.size(i);
+  
+  posit_type* input_data_base = input.data_ptr<posit_type>();
+  posit_type* output_data_base = output.data_ptr<posit_type>();
+  
+  int64_t grain_size = internal::GRAIN_SIZE / (16 * dim_size);
+  if (grain_size < 1)
+    grain_size = 1;
+
+  parallel_for(
+      0,
+      outer_size,
+      grain_size,
+      [&](int64_t begin, int64_t end) {
+        for (int64_t i = begin; i < end; i++) {
+	  posit_type* input_data = input_data_base + i * dim_size;
+	  posit_type* output_data = output_data_base + i * dim_size;
+	  posit_type max_input = 0;
+	 
+	  max_input = std::accumulate(input_data, input_data + dim_size, max_input, [&](posit_type max_input, posit_type elem) { return (max_input > elem ? max_input : elem); });
+
+	  std::transform(input_data, input_data + dim_size, output_data, [&](posit_type elem) { return std::exp(elem - max_input); } );
+
+	  posit_type tmp_sum = 0;
+	  
+	  tmp_sum = std::accumulate(output_data, output_data + dim_size, tmp_sum); 
+          tmp_sum = 1 / tmp_sum;
+
+	  std::transform(output_data, output_data + dim_size, output_data, [&](posit_type elem) { return elem * tmp_sum; });
+
         }
       });
 }
@@ -441,10 +485,18 @@ struct vec_host_softmax_backward_lastdim {
 static void softmax_lastdim_kernel_impl(
     const Tensor& result,
     const Tensor& self) {
-  AT_DISPATCH_FLOATING_TYPES_AND(
-      at::ScalarType::BFloat16, self.scalar_type(),
-      "softmax_lastdim_kernel_impl",
-      [&] { vec_host_softmax_lastdim<scalar_t, false>::apply(result, self); });
+  if (at::isPositType(self.scalar_type())) {
+      AT_DISPATCH_POSIT_TYPES(
+	self.scalar_type(),
+	"softmax_lastdim_kernel_impl",
+	[&] { _softmax_lastdim_posit<scalar_t>(result, self); });
+  }
+  else {
+      AT_DISPATCH_FLOATING_TYPES_AND(
+        at::ScalarType::BFloat16, self.scalar_type(),
+        "softmax_lastdim_kernel_impl",
+        [&] { vec_host_softmax_lastdim<scalar_t, false>::apply(result, self); });
+  }
 }
 
 static void softmax_kernel_impl(const Tensor& result, const Tensor& self, int64_t dim) {
