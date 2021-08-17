@@ -96,6 +96,73 @@ inline void _vec_log_softmax_lastdim(
       });
 }
 
+template <typename posit_type>
+inline void _log_softmax_lastdim_posit(
+  const Tensor& output,  
+  const Tensor& input) {
+  
+  int64_t outer_size = 1;
+  int64_t dim_size = input.size(input.ndimension() - 1);
+  
+  for (int64_t i = 0; i < input.ndimension() - 1; ++i)
+    outer_size *= input.size(i);
+  
+  posit_type* input_data_base = input.data_ptr<posit_type>();
+  posit_type* output_data_base = output.data_ptr<posit_type>();
+  
+  static constexpr int64_t CHUNK_SIZE = (128 / sizeof(posit_type));
+  int64_t grain_size = internal::GRAIN_SIZE / (16 * dim_size * CHUNK_SIZE);
+  if (grain_size < CHUNK_SIZE)
+    grain_size = CHUNK_SIZE;
+
+  parallel_for(
+      0,
+      outer_size,
+      grain_size,
+      [&](int64_t begin, int64_t end) {
+        for (int64_t ii = begin; ii < end; ii += CHUNK_SIZE) {
+          // NOLINTNEXTLINE(modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
+          posit_type tmp_sum_scalar[CHUNK_SIZE];
+          // NOLINTNEXTLINE(modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
+          posit_type max_input_arr[CHUNK_SIZE];
+          int64_t loop_end = CHUNK_SIZE;
+          if (ii + CHUNK_SIZE > end)
+            loop_end = end - ii;
+          for (int64_t j = 0; j < loop_end; j++) {
+            int64_t i = ii + j;
+            posit_type* input_data = input_data_base + i * dim_size;
+            max_input_arr[j] = 0;
+            max_input_arr[j] = std::accumulate(
+              input_data, 
+              input_data + dim_size, 
+              max_input_arr[j],
+              [&](posit_type max_input, posit_type elem) { return (max_input > elem ? max_input : elem); }
+            );
+          }
+          for (int64_t j = 0; j < loop_end; j++) {
+            int64_t i = ii + j;
+            posit_type* input_data = input_data_base + i * dim_size;
+            posit_type* output_data = output_data_base + i * dim_size;
+            posit_type max_input = max_input_arr[j];
+
+            std::transform(input_data, input_data + dim_size, output_data, [&](posit_type elem) { return std::exp(elem - max_input); } );
+            tmp_sum_scalar[j] = 0;
+            tmp_sum_scalar[j] = std::accumulate(output_data, output_data + dim_size, tmp_sum_scalar[j]);
+          }
+          std::transform(tmp_sum_scalar, tmp_sum_scalar + loop_end, tmp_sum_scalar, [&](posit_type elem) { return std::log(elem); });
+          for (int64_t j = 0; j < loop_end; j++) {
+            int64_t i = ii + j;
+            posit_type* input_data = input_data_base + i * dim_size;
+            posit_type* output_data = output_data_base + i * dim_size;
+            posit_type tmp_sum = tmp_sum_scalar[j];
+            posit_type max_input = max_input_arr[j];
+
+            std::transform(input_data, input_data + dim_size, output_data, [&](posit_type elem) { return elem - max_input - tmp_sum; } );
+          }
+        }
+      });
+}
+
 template <typename scalar_t>
 inline void _vec_softmax_lastdim(
     scalar_t* input_data_base,
@@ -508,10 +575,18 @@ static void softmax_kernel_impl(const Tensor& result, const Tensor& self, int64_
 static void log_softmax_lastdim_kernel_impl(
     const Tensor& result,
     const Tensor& self) {
-  AT_DISPATCH_FLOATING_TYPES_AND(
-      at::ScalarType::BFloat16, self.scalar_type(),
-      "log_softmax_lastdim_kernel_impl",
-      [&] { vec_host_softmax_lastdim<scalar_t, true>::apply(result, self); });
+  if (at::isPositType(self.scalar_type())) {
+      AT_DISPATCH_POSIT_TYPES(
+	self.scalar_type(),
+	"log_softmax_lastdim_kernel_impl",
+	[&] { _log_softmax_lastdim_posit<scalar_t>(result, self); });
+  }
+  else {
+      AT_DISPATCH_FLOATING_TYPES_AND(
+        at::ScalarType::BFloat16, self.scalar_type(),
+        "log_softmax_lastdim_kernel_impl",
+        [&] { vec_host_softmax_lastdim<scalar_t, true>::apply(result, self); });
+  }
 }
 
 static void softmax_backward_lastdim_kernel_impl(
