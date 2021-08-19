@@ -384,8 +384,9 @@ void nll_loss_backward_out_cpu_template(
     const Tensor& total_weight) {
   grad_input.zero_();
 
-  AT_DISPATCH_FLOATING_TYPES_AND(
+  AT_DISPATCH_FLOATING_TYPES_AND2(
       ScalarType::BFloat16,
+      ScalarType::Posit16es2,
       input.scalar_type(),
       "nll_loss_backward_out_frame",
       [&] {
