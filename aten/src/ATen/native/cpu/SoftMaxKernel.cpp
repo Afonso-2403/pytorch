@@ -98,18 +98,18 @@ inline void _vec_log_softmax_lastdim(
 
 template <typename posit_type>
 inline void _log_softmax_lastdim_posit(
-  const Tensor& output,  
-  const Tensor& input) {
-  
+    const Tensor& output,
+    const Tensor& input) {
+
   int64_t outer_size = 1;
   int64_t dim_size = input.size(input.ndimension() - 1);
-  
+
   for (int64_t i = 0; i < input.ndimension() - 1; ++i)
     outer_size *= input.size(i);
-  
+
   posit_type* input_data_base = input.data_ptr<posit_type>();
-  posit_type* output_data_base = output.data_ptr<posit_type>();
-  
+  posit_type* output_data_base = output.data_ptr<posit_type>(); 
+
   static constexpr int64_t CHUNK_SIZE = (128 / sizeof(posit_type));
   int64_t grain_size = internal::GRAIN_SIZE / (16 * dim_size * CHUNK_SIZE);
   if (grain_size < CHUNK_SIZE)
@@ -294,6 +294,75 @@ inline void _vec_host_softmax_backward_lastdim(
                 grad_data,
                 output_data,
                 dim_size);
+          }
+        }
+      });
+}
+
+template <typename posit_type, bool log_softmax>
+inline void _softmax_backward_lastdim_posit(
+    const Tensor& grad_input, 
+    const Tensor& grad, 
+    const Tensor& output) {
+
+  int64_t outer_size = 1;
+  int64_t dim_size = grad.size(grad.ndimension() - 1);
+  for (int64_t i = 0; i < grad.ndimension() - 1; ++i)
+    outer_size *= grad.size(i);
+  posit_type* grad_input_data_base = grad_input.data_ptr<posit_type>();
+  posit_type* grad_data_base = grad.data_ptr<posit_type>();
+  posit_type* output_data_base = output.data_ptr<posit_type>();
+
+  int64_t grain_size = internal::GRAIN_SIZE / (16 * dim_size);
+  if (grain_size < 1)
+    grain_size = 1;
+
+  parallel_for(
+      0,
+      outer_size,
+      grain_size,
+      [&](int64_t begin, int64_t end) {
+        for (int64_t i = begin; i < end; i++) {
+          posit_type* grad_input_data = grad_input_data_base + i * dim_size;
+          posit_type* grad_data = grad_data_base + i * dim_size;
+          posit_type* output_data = output_data_base + i * dim_size;
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+          posit_type sum = 0;
+          if (log_softmax) {
+            sum = std::accumulate(grad_data, grad_data + dim_size, sum);
+          } else {
+            std::transform(
+              grad_data, 
+              grad_data + dim_size, 
+              output_data, 
+              grad_input_data, 
+              [&](posit_type x, posit_type y) {
+                return x * y; 
+              }
+            );
+
+            sum = std::accumulate(grad_input_data, grad_input_data + dim_size, sum);
+          }
+          if (log_softmax) {
+            std::transform(
+              grad_data,
+              grad_data + dim_size,
+              output_data,
+              grad_input_data,
+              [&](posit_type x, posit_type y) {
+                return x - (std::exp(y) * sum);
+              }
+            );
+          } else {
+            std::transform(
+              grad_data,
+              grad_data + dim_size,
+              output_data,
+              grad_input_data,
+              [&](posit_type x, posit_type y) {
+                return (x - sum) * y;
+              }
+            );
           }
         }
       });
@@ -575,17 +644,19 @@ static void softmax_kernel_impl(const Tensor& result, const Tensor& self, int64_
 static void log_softmax_lastdim_kernel_impl(
     const Tensor& result,
     const Tensor& self) {
-  if (at::isPositType(self.scalar_type())) {
-      AT_DISPATCH_POSIT_TYPES(
-	self.scalar_type(),
-	"log_softmax_lastdim_kernel_impl",
-	[&] { _log_softmax_lastdim_posit<scalar_t>(result, self); });
+
+  if (isPositType(self.scalar_type())) {
+    AT_DISPATCH_POSIT_TYPES(
+      self.scalar_type(),
+      "log_softmax_lastdim_kernel_impl",
+      [&]() { _log_softmax_lastdim_posit<scalar_t>(result, self); }
+    ); 
   }
   else {
-      AT_DISPATCH_FLOATING_TYPES_AND(
-        at::ScalarType::BFloat16, self.scalar_type(),
-        "log_softmax_lastdim_kernel_impl",
-        [&] { vec_host_softmax_lastdim<scalar_t, true>::apply(result, self); });
+    AT_DISPATCH_FLOATING_TYPES_AND(
+      at::ScalarType::BFloat16, self.scalar_type(),
+      "log_softmax_lastdim_kernel_impl",
+      [&] { vec_host_softmax_lastdim<scalar_t, true>::apply(result, self); });
   }
 }
 
@@ -593,24 +664,42 @@ static void softmax_backward_lastdim_kernel_impl(
     const Tensor& grad_input,
     const Tensor& grad,
     const Tensor& output) {
-  AT_DISPATCH_FLOATING_TYPES_AND(
-      at::ScalarType::BFloat16, grad.scalar_type(),
-      "softmax_backward_lastdim_kernel_impl", [&] {
-        vec_host_softmax_backward_lastdim<scalar_t, false>::apply(
-            grad_input, grad, output);
-      });
+  if (isPositType(grad.scalar_type())) {
+    AT_DISPATCH_POSIT_TYPES(
+      grad.scalar_type(), 
+      "softmax_backward_lastdim_kernel_impl",
+      [&]() { _softmax_backward_lastdim_posit<scalar_t, false>(grad_input, grad, output); }
+    );
+  }
+  else {
+    AT_DISPATCH_FLOATING_TYPES_AND(
+        at::ScalarType::BFloat16, grad.scalar_type(),
+        "softmax_backward_lastdim_kernel_impl", [&] {
+          vec_host_softmax_backward_lastdim<scalar_t, false>::apply(
+              grad_input, grad, output);
+        });
+  }
 }
 
 static void log_softmax_backward_lastdim_kernel_impl(
     const Tensor& grad_input,
     const Tensor& grad,
     const Tensor& output) {
-  AT_DISPATCH_FLOATING_TYPES_AND(
-      at::ScalarType::BFloat16, grad.scalar_type(),
-      "log_softmax_backward_lastdim_kernel_impl", [&] {
-        vec_host_softmax_backward_lastdim<scalar_t, true>::apply(
-            grad_input, grad, output);
-      });
+  if (isPositType(grad.scalar_type())) {
+    AT_DISPATCH_POSIT_TYPES(
+      grad.scalar_type(), 
+      "softmax_backward_lastdim_kernel_impl",
+      [&]() { _softmax_backward_lastdim_posit<scalar_t, true>(grad_input, grad, output); }
+    );
+  }
+  else {
+    AT_DISPATCH_FLOATING_TYPES_AND(
+        at::ScalarType::BFloat16, grad.scalar_type(),
+        "log_softmax_backward_lastdim_kernel_impl", [&] {
+          vec_host_softmax_backward_lastdim<scalar_t, true>::apply(
+              grad_input, grad, output);
+        });
+  }
 }
 
 } // anonymous namespace
