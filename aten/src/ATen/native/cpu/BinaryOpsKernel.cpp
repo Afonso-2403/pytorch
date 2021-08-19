@@ -763,7 +763,21 @@ void logit_backward_kernel(TensorIteratorBase& iter, const Scalar& eps_scalar) {
 }
 
 void tanh_backward_kernel(TensorIteratorBase& iter) {
-  if (isComplexType(iter.dtype())) {
+  if (isPositType(iter.dtype())) {
+    AT_DISPATCH_POSIT_TYPES(
+      iter.dtype(), 
+      "tanh_backward_cpu", 
+      [&]() {
+        cpu_kernel(
+	  iter,
+          [=](scalar_t a, scalar_t b) -> scalar_t {
+            return a * (scalar_t(1) - b * b);
+          }
+	);
+      }
+    );
+  }
+  else if (isComplexType(iter.dtype())) {
     AT_DISPATCH_COMPLEX_TYPES(iter.dtype(), "tanh_backward_cpu", [&]() {
       auto one_vec = Vectorized<scalar_t>(scalar_t{1});
     cpu_kernel_vec(
