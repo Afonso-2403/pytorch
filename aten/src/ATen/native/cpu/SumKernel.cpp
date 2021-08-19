@@ -2,6 +2,7 @@
 #include <ATen/Dispatch.h>
 #include <ATen/native/ReduceOps.h>
 #include <ATen/native/TensorIterator.h>
+#include <ATen/native/SharedReduceOps.h>
 #include <ATen/native/cpu/Reduce.h>
 #include <ATen/native/cpu/utils.h>
 
@@ -605,6 +606,18 @@ void cascade_sum(TensorIterator &iter) {
 }
 
 void sum_kernel_impl(TensorIterator &iter) {
+
+  if (isPositType(iter.dtype())) {
+    AT_DISPATCH_POSIT_TYPES(
+	iter.dtype(), 
+	"sum_cpu", 
+	[&]() {
+	    binary_kernel_reduce(iter, SumOps<scalar_t, scalar_t>(), scalar_t(0));
+	}
+    );
+    return;
+  }
+
   if (isIntegralType(iter.dtype(), /*includeBool=*/ true)) {
     AT_DISPATCH_INTEGRAL_TYPES_AND(ScalarType::Bool, iter.dtype(), "sum_cpu",
       [&] {
