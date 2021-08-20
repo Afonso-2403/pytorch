@@ -135,8 +135,8 @@ void unfolded2d_acc_kernel(
   // output_height*dH does not overflow a int64_t
   // output_width*dW does not overflow a int64_t
 
-  AT_DISPATCH_FLOATING_TYPES_AND(
-      at::ScalarType::BFloat16, input.scalar_type(), "unfolded2d_acc", [&] {
+  AT_DISPATCH_FLOATING_TYPES_AND2(
+      at::ScalarType::BFloat16, at::ScalarType::Posit16es2, input.scalar_type(), "unfolded2d_acc", [&] {
         scalar_t* finput_data = finput.data_ptr<scalar_t>();
         scalar_t* input_data = input.data_ptr<scalar_t>();
 

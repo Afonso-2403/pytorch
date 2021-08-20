@@ -303,8 +303,9 @@ void slow_conv2d_backward_parameters_frame(
   }
 
   if (grad_bias.defined()) {
-    AT_DISPATCH_FLOATING_TYPES_AND(
+    AT_DISPATCH_FLOATING_TYPES_AND2(
         at::ScalarType::BFloat16,
+	at::ScalarType::Posit16es2,
         grad_output.scalar_type(),
         "slow_conv2d_backward_parameters",
         [&] {
