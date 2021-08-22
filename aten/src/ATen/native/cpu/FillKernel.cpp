@@ -41,6 +41,15 @@ void fill_kernel(TensorIterator& iter, const Scalar& value_scalar) {
     fill_non_native_type<at::BFloat16>(iter, value_scalar);
   } else if (iter.dtype() == ScalarType::ComplexHalf) {
     fill_non_native_type<c10::complex<at::Half>>(iter, value_scalar);
+  } else if (isPositType(iter.dtype())) {
+    AT_DISPATCH_POSIT_TYPES(
+      iter.dtype(), 
+      "fill_cpu", 
+      [&]() {
+        scalar_t value = value_scalar.to<scalar_t>();
+	cpu_kernel(iter, [=]() -> scalar_t { return value; });
+      }
+    );
   } else {
     AT_DISPATCH_ALL_TYPES_AND_COMPLEX_AND(at::ScalarType::Bool, iter.dtype(), "fill_cpu", [&]() {
       scalar_t value = value_scalar.to<scalar_t>();
