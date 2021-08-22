@@ -372,7 +372,7 @@ void avg_pool2d_kernel_impl(
       break;
     }
     case at::MemoryFormat::ChannelsLast: {
-      AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Long, at::ScalarType::Posit16es2, input.scalar_type(), "avg_pool2d_channels_last", [&] {
+      AT_DISPATCH_FLOATING_TYPES_AND(at::ScalarType::Long, input.scalar_type(), "avg_pool2d_channels_last", [&] {
         cpu_avg_pool_channels_last<scalar_t>(output, input, kW, kH, dW, dH, padW, padH, count_include_pad, divisor_override);
       });
       break;
@@ -392,7 +392,7 @@ void avg_pool2d_backward_kernel_impl(
     c10::optional<int64_t> divisor_override) {
   switch (grad_output.suggest_memory_format()) {
     case at::MemoryFormat::Contiguous: {
-      AT_DISPATCH_FLOATING_TYPES_AND(at::ScalarType::Long, grad_output.scalar_type(), "avg_pool2d_backward", [&] {
+      AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Long, at::ScalarType::Posit16es2, grad_output.scalar_type(), "avg_pool2d_backward", [&] {
         cpu_avg_pool_backward<scalar_t>(grad_input, grad_output, kW, kH, dW, dH, padW, padH, count_include_pad, divisor_override);
       });
       break;
