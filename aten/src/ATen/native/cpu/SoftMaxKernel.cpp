@@ -146,11 +146,19 @@ inline void _log_softmax_lastdim_posit(
             posit_type max_input = max_input_arr[j];
 
             std::transform(input_data, input_data + dim_size, output_data, [&](posit_type elem) { return std::exp(elem - max_input); } );
-            tmp_sum_scalar[j] = 0;
-            tmp_sum_scalar[j] = std::accumulate(output_data, output_data + dim_size, tmp_sum_scalar[j]);
+            
+	    sw::universal::quire<posit_type::nbits, posit_type::es> q;
+	    q.clear();
+
+	    tmp_sum_scalar[j] = 0;
+	    for (int i = 0; i < dim_size; ++i)
+	    {
+	    	q += output_data[i];	
+	    }
+	    tmp_sum_scalar[j] = std::log(float(q.to_value()));
           }
-          std::transform(tmp_sum_scalar, tmp_sum_scalar + loop_end, tmp_sum_scalar, [&](posit_type elem) { return std::log(elem); });
-          for (int64_t j = 0; j < loop_end; j++) {
+          
+	  for (int64_t j = 0; j < loop_end; j++) {
             int64_t i = ii + j;
             posit_type* input_data = input_data_base + i * dim_size;
             posit_type* output_data = output_data_base + i * dim_size;
