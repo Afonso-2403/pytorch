@@ -104,7 +104,7 @@ static void copy_kernel(TensorIterator& iter, bool non_blocking) {
   } else if(isPositType(dtype)) {
     AT_DISPATCH_POSIT_TYPES(dtype, "copy_", [&] {
       using dest_t = scalar_t;
-      AT_DISPATCH_FLOATING_TYPES_AND3(ScalarType::Int, ScalarType::Long, ScalarType::Short, iter.dtype(1), "copy_", [&] {
+      AT_DISPATCH_ALL_TYPES(iter.dtype(1), "copy_", [&] {
         cpu_kernel(iter, [](scalar_t src) -> dest_t {
           return c10::static_cast_with_inter_type<dest_t, scalar_t>::apply(src); });
       });
@@ -113,13 +113,22 @@ static void copy_kernel(TensorIterator& iter, bool non_blocking) {
       iter.tensor(0).neg_();
     }
   } else if(isPositType(iter.dtype(1))) {
-    AT_DISPATCH_FLOATING_TYPES_AND3(ScalarType::Int, ScalarType::Long, ScalarType::Short, dtype, "copy_", [&] {
-      using dest_t = scalar_t;
-      AT_DISPATCH_POSIT_TYPES(iter.dtype(1), "copy_", [&] {
-        cpu_kernel(iter, [](scalar_t src) -> dest_t {
-          return c10::static_cast_with_inter_type<dest_t, scalar_t>::apply(src); });
+    if (dtype == ScalarType::Byte) {
+        AT_DISPATCH_POSIT_TYPES(iter.dtype(1), "copy_", [&] {
+          cpu_kernel(iter, [](scalar_t src) -> uint8_t {
+            return c10::static_cast_with_inter_type<uint8_t, float>::apply(c10::static_cast_with_inter_type<float, scalar_t>::apply(src)); 
+	  });
+        }); 
+    }
+    else {
+      AT_DISPATCH_FLOATING_TYPES_AND3(ScalarType::Int, ScalarType::Long, ScalarType::Short, dtype, "copy_", [&] {
+        using dest_t = scalar_t;
+        AT_DISPATCH_POSIT_TYPES(iter.dtype(1), "copy_", [&] {
+          cpu_kernel(iter, [](scalar_t src) -> dest_t{
+            return c10::static_cast_with_inter_type<dest_t, scalar_t>::apply(src); });
+        });
       });
-    });
+    }
     if (iter.tensor(0).is_neg() != iter.tensor(1).is_neg()) {
       iter.tensor(0).neg_();
     }
