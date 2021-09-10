@@ -16,6 +16,8 @@
 #include <ATen/native/Resize.h>
 #include <ATen/native/cpu/Loops.h>
 
+#include <c10/util/Posit16es2.h>
+
 namespace at { namespace native { namespace {
 
 template <typename scalar_t, typename scalar_t_2 = int64_t, typename loop1d_t>
@@ -137,29 +139,56 @@ static void max_kernel_impl(
   TORCH_CHECK(result.scalar_type() == self.scalar_type() && indice.scalar_type() == kLong,
     "Expect dtype ", self.scalar_type(), "and torch.long, but got ", result.scalar_type(), "and", indice.scalar_type());
 
-  AT_DISPATCH_ALL_TYPES_AND3(ScalarType::Half, ScalarType::BFloat16, ScalarType::Bool, self.scalar_type(), "max_cpu", [&] {
-    compare_base_kernel<scalar_t>(result, indice, self, wrap_dim, keepdim, [&] (
-      scalar_t* result_data, int64_t* indice_data,
-      const scalar_t* self_data, auto self_dim_stride) {
-        using value_t = typename c10::scalar_value_type<scalar_t>::type;
-        value_t (*zabs_)(scalar_t) = zabs<scalar_t, value_t>;
-        scalar_t max_number = self_data[0];
-        int64_t index = 0;
-        for (int64_t i = 0; i < self_dim_size; ++i) {
-          scalar_t value = self_data[i * self_dim_stride];
-          if (!(zabs_(value) <= zabs_(max_number))) {
-            max_number = value;
-            index = i;
-            if (_isnan<scalar_t>(value)) {
-              break;
+  if (isPositType(self.scalar_type())) {
+    AT_DISPATCH_POSIT_TYPES(self.scalar_type(), "max_cpu", [&] {
+      compare_base_kernel<scalar_t>(result, indice, self, wrap_dim, keepdim, [&] (
+        scalar_t* result_data, int64_t* indice_data,
+        const scalar_t* self_data, auto self_dim_stride) {
+          using value_t = typename c10::scalar_value_type<scalar_t>::type;
+          value_t (*zabs_)(scalar_t) = zabs<scalar_t, value_t>;
+          scalar_t max_number = self_data[0];
+          int64_t index = 0;
+          for (int64_t i = 0; i < self_dim_size; ++i) {
+            scalar_t value = self_data[i * self_dim_stride];
+            if (!(zabs_(value) <= zabs_(max_number))) {
+              max_number = value;
+              index = i;
+              if (value.isnar()) {
+                break;
+              }
             }
           }
+          *result_data = max_number;
+          *indice_data = index;
         }
-        *result_data = max_number;
-        *indice_data = index;
-      }
-    );
-  });
+      );
+    });    
+  }
+  else {
+    AT_DISPATCH_ALL_TYPES_AND3(ScalarType::Half, ScalarType::BFloat16, ScalarType::Bool, self.scalar_type(), "max_cpu", [&] {
+      compare_base_kernel<scalar_t>(result, indice, self, wrap_dim, keepdim, [&] (
+        scalar_t* result_data, int64_t* indice_data,
+        const scalar_t* self_data, auto self_dim_stride) {
+          using value_t = typename c10::scalar_value_type<scalar_t>::type;
+          value_t (*zabs_)(scalar_t) = zabs<scalar_t, value_t>;
+          scalar_t max_number = self_data[0];
+          int64_t index = 0;
+          for (int64_t i = 0; i < self_dim_size; ++i) {
+            scalar_t value = self_data[i * self_dim_stride];
+            if (!(zabs_(value) <= zabs_(max_number))) {
+              max_number = value;
+              index = i;
+              if (_isnan<scalar_t>(value)) {
+                break;
+              }
+            }
+          }
+          *result_data = max_number;
+          *indice_data = index;
+        }
+      );
+    });
+  }
 }
 
 static void aminmax_kernel(
