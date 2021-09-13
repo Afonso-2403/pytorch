@@ -139,3 +139,10 @@
 [submodule "third_party/universal"]
 	path = third_party/universal
 	url = https://github.com/Afonso-2403/universal.git
+[submodule "third_party/pocketfft"]
+	path = third_party/pocketfft
+	url = https://github.com/mreineck/pocketfft
+[submodule "third_party/breakpad"]
+	path = third_party/breakpad
+	url = https://github.com/driazati/breakpad.git
+

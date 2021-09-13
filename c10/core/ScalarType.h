@@ -13,7 +13,7 @@
 
 #include <complex>
 #include <cstdint>
-#include <iostream>
+#include <ostream>
 
 
 
