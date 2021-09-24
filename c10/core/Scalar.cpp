@@ -10,8 +10,10 @@ Scalar Scalar::operator-() const {
     return Scalar(-v.d);
   } else if (isComplex()) {
     return Scalar(-v.z);
-  } else {
+  } else if (isBoolean()){
     return Scalar(-v.i);
+  } else {
+    return Scalar(-v.p);
   }
 }
 
@@ -28,8 +30,10 @@ Scalar Scalar::log() const {
     return std::log(v.z);
   } else if (isFloatingPoint()) {
     return std::log(v.d);
-  } else {
+  } else if (isBoolean()){
     return std::log(v.i);
+  } else {
+    return std::log(v.p);
   }
 }
 

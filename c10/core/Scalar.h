@@ -13,6 +13,7 @@
 #include <c10/util/Exception.h>
 #include <c10/util/Half.h>
 #include <c10/util/TypeCast.h>
+#include <c10/util/Posit16es2-math.h>
 
 namespace c10 {
 
@@ -57,8 +58,11 @@ class C10_API Scalar {
     }                                                                 \
     if (Tag::HAS_b == tag) {                                          \
       return checked_convert<type, bool>(v.i, #type);                 \
-    } else {                                                          \
+    } else if (Tag::HAS_i == tag){                                                          \
       return checked_convert<type, int64_t>(v.i, #type);              \
+    } else {                                          		      \
+      double intermediate = convert<double, c10::posit16es2>(v.p);    \
+      return checked_convert<type, double>(intermediate, #type);      \
     }                                                                 \
   }
 
@@ -92,6 +96,10 @@ class C10_API Scalar {
     return Tag::HAS_b == tag;
   }
 
+  bool isPosit() const {
+    return Tag::HAS_p == tag;
+  }
+
   Scalar operator-() const;
   Scalar conj() const;
   Scalar log() const;
@@ -107,9 +115,11 @@ class C10_API Scalar {
       return v.d == num;
     } else if (isIntegral(/*includeBool=*/false)) {
       return v.i == num;
-    } else {
+    } else if (isBoolean()){
       // boolean scalar does not equal to a non boolean value
       return false;
+    } else {
+      return v.p == num;
     }
   }
 
@@ -123,9 +133,11 @@ class C10_API Scalar {
       return (v.d == num.real()) && (num.imag() == T());
     } else if (isIntegral(/*includeBool=*/false)) {
       return (v.i == num.real()) && (num.imag() == T());
-    } else {
+    } else if (isBoolean()){
       // boolean scalar does not equal to a non boolean value
       return false;
+    } else {
+      return (v.p == num.real()) && (num.imag() == T());
     }
   }
 
@@ -146,6 +158,8 @@ class C10_API Scalar {
       return ScalarType::Long;
     } else if (isBoolean()) {
       return ScalarType::Bool;
+    } else if (isPosit()){
+      return ScalarType::Posit16es2;
     } else {
       throw std::runtime_error("Unknown scalar type.");
     }
@@ -164,7 +178,7 @@ class C10_API Scalar {
   template <
       typename T,
       typename std::enable_if<
-          !std::is_integral<T>::value && !c10::is_complex<T>::value,
+          !std::is_integral<T>::value && !c10::is_complex<T>::value && !std::is_same<T, c10::posit16es2>::value,
           bool>::type* = nullptr>
   Scalar(T vv, bool) : tag(Tag::HAS_d) {
     v.d = convert<decltype(v.d), T>(vv);
@@ -177,15 +191,23 @@ class C10_API Scalar {
     v.z = convert<decltype(v.z), T>(vv);
   }
 
+  template <
+      typename T,
+      typename std::enable_if<std::is_same<T, c10::posit16es2>::value, bool>::type* = nullptr>
+  Scalar(T vv, bool) : tag(Tag::HAS_p) {
+    v.p = convert<decltype(v.p), T>(vv);
+  }
+
   // We can't set v in the initializer list using the
   // syntax v{ .member = ... } because it doesn't work on MSVC
 
-  enum class Tag { HAS_d, HAS_i, HAS_z, HAS_b };
+  enum class Tag { HAS_d, HAS_i, HAS_z, HAS_b, HAS_p };
   Tag tag;
   union v_t {
     double d;
     int64_t i;
     c10::complex<double> z;
+    c10::posit16es2 p;
     v_t() {} // default constructor
   } v;
 };
