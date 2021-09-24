@@ -10,7 +10,7 @@ namespace at { namespace native {
 inline void alpha_check(const ScalarType dtype, const Scalar& alpha) {
   TORCH_CHECK(! alpha.isBoolean() || dtype == ScalarType::Bool,
               "Boolean alpha only supported for Boolean results.");
-  TORCH_CHECK(isFloatingType(dtype) || isComplexType(dtype)
+  TORCH_CHECK(isFloatingType(dtype) || isComplexType(dtype) || isPositType(dtype)
               || alpha.isIntegral(true),
               "For integral input tensors, argument alpha must not be a floating point number.");
   TORCH_CHECK(isComplexType(dtype) || !alpha.isComplex(),
