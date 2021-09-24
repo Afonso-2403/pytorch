@@ -704,13 +704,18 @@ static void erfcx_kernel(TensorIteratorBase& iter){
 #define IMPLEMENT_COMPLEX_KERNEL(op)                                                             \
   namespace CPU_CAPABILITY {                                                                     \
   void op##_kernel(TensorIteratorBase& iter) {                                                   \
-    TORCH_INTERNAL_ASSERT(iter.ntensors() == 2);				       	         \
-    if(strcmp(#op, "tanh") == 0 && iter.dtype() == ScalarType::Posit16es2) {				 \
-    	AT_DISPATCH_POSIT_TYPES(iter.dtype(), #op, [&](){					 \
-		cpu_kernel(iter, [=](scalar_t a) -> scalar_t { return std::tanh(a); });		 \
-	});											 \
-    }												 \
-    else {											 \
+    TORCH_INTERNAL_ASSERT(iter.ntensors() == 2);				       	                                 \
+    if(strcmp(#op, "tanh") == 0 && iter.dtype() == ScalarType::Posit16es2) {				             \
+    	AT_DISPATCH_POSIT_TYPES(iter.dtype(), #op, [&](){					                                 \
+    		cpu_kernel(iter, [=](scalar_t a) -> scalar_t { return std::tanh(a); });		               \
+	    });											                                                                   \
+    }												                                                                     \
+    else if (strcmp(#op, "sqrt") == 0 && iter.dtype() == ScalarType::Posit16es2) {               \
+    	AT_DISPATCH_POSIT_TYPES(iter.dtype(), #op, [&](){					                                 \
+    		cpu_kernel(iter, [=](scalar_t a) -> scalar_t { return std::sqrt(a); });		               \
+	    });											                                                                   \
+    }                                                                                            \
+    else {											                                                                 \
     	AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES_AND1(kBFloat16, iter.dtype(), #op "_vml_cpu", [&]() { \
       	  iter.serial_for_each(                                                                      \
             IMPLEMENT_ITERATOR_LAMBDA(op),                                                         \
