@@ -91,7 +91,7 @@ def adam(params: List[Tensor],
             # Use the max. for normalizing running avg. of gradient
             denom = (max_exp_avg_sqs[i].sqrt() / math.sqrt(bias_correction2)).add_(eps)
         else:
-            denom = (exp_avg_sq.sqrt() / math.sqrt(bias_correction2)).add_(eps)
+            denom = (exp_avg_sq.sqrt() / math.sqrt(bias_correction2)).add_(eps).type(exp_avg_sq.dtype)
 
         step_size = lr / bias_correction1
 
