@@ -12,7 +12,17 @@ namespace {
 
 static void addcmul_cpu_kernel(TensorIteratorBase& iter, const Scalar& value) {
   ScalarType dtype = iter.dtype(0);
-  if (iter.dtype() == kBFloat16) {
+  if (dtype == kPosit16es2) {
+    AT_DISPATCH_POSIT_TYPES(dtype, "addcmul_cpu_out", [&] {
+      scalar_t scalar_val = value.to<scalar_t>();
+      cpu_kernel(
+        iter,
+        [=](scalar_t self_val, scalar_t t1_val, scalar_t t2_val) -> scalar_t {
+          return self_val + scalar_val * t1_val * t2_val;
+        }
+      );
+    });
+  } else if (iter.dtype() == kBFloat16) {
     float float_val = value.to<float>();
     auto float_vec = Vectorized<float>(float_val);
     cpu_kernel_vec(
@@ -52,7 +62,17 @@ static void addcmul_cpu_kernel(TensorIteratorBase& iter, const Scalar& value) {
 
 static void addcdiv_cpu_kernel(TensorIteratorBase& iter, const Scalar& value) {
   ScalarType dtype = iter.dtype(0);
-  if (dtype == kBFloat16) {
+  if (dtype == kPosit16es2) {
+    AT_DISPATCH_POSIT_TYPES(dtype, "addcdiv_cpu_out", [&] {
+      scalar_t scalar_val = value.to<scalar_t>();
+      cpu_kernel(
+        iter,
+        [=](scalar_t self_val, scalar_t t1_val, scalar_t t2_val) -> scalar_t {
+          return self_val + scalar_val * t1_val / t2_val;
+        }
+      );
+    });
+  } else if (dtype == kBFloat16) {
     float float_val = value.to<float>();
     auto float_vec = Vectorized<float>(float_val);
     cpu_kernel_vec(
